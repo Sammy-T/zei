@@ -59,6 +59,13 @@ func main() {
 						Usage:  "add a new snippet",
 						Action: addSnippet,
 					},
+					{
+						Name:      "remove",
+						Aliases:   []string{"rm", "del"},
+						Usage:     "remove snippet with ID",
+						UsageText: "zei snippet remove ID",
+						Action:    removeSnippet,
+					},
 				},
 			},
 		},
@@ -112,6 +119,20 @@ func addSnippet(_ context.Context, _ *cli.Command) error {
 	}
 
 	if result := db.Create(&Snippet{ID: id, Command: cmdText, Description: description}); result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
+func removeSnippet(_ context.Context, cmd *cli.Command) error {
+	if cmd.Args().Len() == 0 {
+		return fmt.Errorf("invalid snippet id args")
+	}
+
+	ids := cmd.Args().Slice()
+
+	if result := db.Delete(&Snippet{}, ids); result.Error != nil {
 		return result.Error
 	}
 
