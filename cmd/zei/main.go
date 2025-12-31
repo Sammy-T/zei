@@ -3,37 +3,38 @@ package main
 import (
 	"bufio"
 	"context"
-	"database/sql"
 	"fmt"
 	"log"
 	"os"
 	"regexp"
 	"strings"
+	"time"
 
+	"github.com/glebarez/sqlite"
 	"github.com/urfave/cli/v3"
-	_ "modernc.org/sqlite"
+	"gorm.io/gorm"
 )
 
-var db *sql.DB
+type Snippet struct {
+	ID          string `gorm:"primaryKey"`
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   gorm.DeletedAt `gorm:"index"`
+	Command     string         `gorm:"not null"`
+	Description string
+}
+
+var db *gorm.DB
 
 func main() {
 	var err error
 
-	db, err = sql.Open("sqlite", "dev.db")
+	db, err = gorm.Open(sqlite.Open("dev.db"), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	_, err = db.Exec(`
-		CREATE TABLE IF NOT EXISTS snippets (
-			id TEXT PRIMARY KEY,
-			command TEXT NOT NULL,
-			description TEXT
-		)`)
-
-	if err != nil {
-		log.Fatal(err)
-	}
+	db.AutoMigrate(&Snippet{})
 
 	cmd := &cli.Command{
 		Name:    "zei",
@@ -69,22 +70,14 @@ func main() {
 }
 
 func listSnippets(_ context.Context, _ *cli.Command) error {
-	rows, err := db.Query(`SELECT * FROM snippets`)
-	if err != nil {
-		return err
+	var snippets []Snippet
+
+	if result := db.Find(&snippets); result.Error != nil {
+		return result.Error
 	}
-	defer rows.Close()
 
-	for rows.Next() {
-		var id string
-		var cmdText string
-		var description string
-
-		if err = rows.Scan(&id, &cmdText, &description); err != nil {
-			return err
-		}
-
-		fmt.Printf("%v %v %v\n", id, cmdText, description)
+	for _, snippet := range snippets {
+		fmt.Printf("%v\n", snippet) //// TODO: Format
 	}
 
 	return nil
@@ -97,7 +90,7 @@ func addSnippet(_ context.Context, _ *cli.Command) error {
 
 	scanner := bufio.NewScanner(os.Stdin)
 
-	fmt.Print("id (ex. some-id): ")
+	fmt.Print("id (ex. some-id): ") //// TODO: validate
 	scanner.Scan()
 	id = scanner.Text()
 
@@ -118,8 +111,8 @@ func addSnippet(_ context.Context, _ *cli.Command) error {
 		return nil
 	}
 
-	if _, err := db.Exec(`INSERT INTO snippets (id, command, description) VALUES (?, ?, ?);`, id, cmdText, description); err != nil {
-		return err
+	if result := db.Create(&Snippet{ID: id, Command: cmdText, Description: description}); result.Error != nil {
+		return result.Error
 	}
 
 	return nil
