@@ -4,8 +4,10 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"os"
+	"os/exec"
 	"regexp"
 	"strings"
 	"time"
@@ -37,13 +39,11 @@ func main() {
 	db.AutoMigrate(&Snippet{})
 
 	cmd := &cli.Command{
-		Name:    "zei",
-		Version: "v0.0.1",
-		Usage:   "A command snippet cli",
-		Action: func(ctx context.Context, c *cli.Command) error {
-			log.Println("todo")
-			return nil
-		},
+		Name:        "zei",
+		Version:     "v0.0.1",
+		Description: "A command snippet cli",
+		Usage:       "Execute snippet with ID",
+		Action:      execSnippet,
 		Commands: []*cli.Command{
 			{
 				Name: "snippet",
@@ -76,6 +76,49 @@ func main() {
 	}
 }
 
+func execSnippet(_ context.Context, c *cli.Command) error {
+	if c.Args().Len() != 1 {
+		return fmt.Errorf("invalid snippet id args")
+	}
+
+	id := c.Args().First()
+
+	var snippet Snippet
+
+	if result := db.First(&snippet, "id = ?", id); result.Error != nil {
+		return result.Error
+	}
+
+	fmt.Println(snippet) //// TODO: Format
+
+	cmdArgs := SplitCmdStr(snippet.Command)
+
+	cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
+
+	outPipe, err := cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+
+	go func(pipe io.ReadCloser) {
+		reader := bufio.NewReader(pipe)
+
+		var line string
+		var err error
+
+		for err == nil {
+			fmt.Print(line)
+			line, err = reader.ReadString('\n')
+		}
+	}(outPipe)
+
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func listSnippets(_ context.Context, _ *cli.Command) error {
 	var snippets []Snippet
 
@@ -97,7 +140,7 @@ func addSnippet(_ context.Context, _ *cli.Command) error {
 
 	scanner := bufio.NewScanner(os.Stdin)
 
-	fmt.Print("id (ex. some-id): ") //// TODO: validate
+	fmt.Print("id (ex. some-id): ") //// TODO: Validate
 	scanner.Scan()
 	id = scanner.Text()
 
@@ -125,12 +168,12 @@ func addSnippet(_ context.Context, _ *cli.Command) error {
 	return nil
 }
 
-func removeSnippet(_ context.Context, cmd *cli.Command) error {
-	if cmd.Args().Len() == 0 {
+func removeSnippet(_ context.Context, c *cli.Command) error {
+	if c.Args().Len() == 0 {
 		return fmt.Errorf("invalid snippet id args")
 	}
 
-	ids := cmd.Args().Slice()
+	ids := c.Args().Slice()
 
 	if result := db.Delete(&Snippet{}, ids); result.Error != nil {
 		return result.Error
