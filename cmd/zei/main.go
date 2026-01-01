@@ -38,6 +38,12 @@ func main() {
 						Action: addSnippet,
 					},
 					{
+						Name:      "update",
+						Usage:     "update snippet with ID",
+						UsageText: "zei snippet update ID",
+						Action:    updateSnippet,
+					},
+					{
 						Name:      "remove",
 						Aliases:   []string{"rm", "del"},
 						Usage:     "remove snippet with ID",
@@ -123,6 +129,38 @@ func addSnippet(_ context.Context, _ *cli.Command) error {
 	}
 
 	return zei.AddSnippet(id, cmdText, description)
+}
+
+func updateSnippet(_ context.Context, c *cli.Command) error {
+	if c.Args().Len() != 1 {
+		return fmt.Errorf("invalid snippet id args")
+	}
+
+	id := c.Args().First()
+
+	snippet, err := zei.GetSnippet(id)
+	if err != nil {
+		return err
+	}
+
+	var updated zei.Snippet
+	scanner := bufio.NewScanner(os.Stdin)
+
+	fmt.Printf("Update '%v' snippet.\nLeave the field blank to keep its current value.\n\n", snippet.ID)
+
+	fmt.Printf("id: %v\nNew id: ", snippet.ID)
+	scanner.Scan()
+	updated.ID = scanner.Text()
+
+	fmt.Printf("command: %v\nNew command: ", snippet.Command)
+	scanner.Scan()
+	updated.Command = scanner.Text()
+
+	fmt.Printf("description: %v\nNew description: ", snippet.Description)
+	scanner.Scan()
+	updated.Description = scanner.Text()
+
+	return zei.UpdateSnippet(id, updated)
 }
 
 func removeSnippet(_ context.Context, c *cli.Command) error {

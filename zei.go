@@ -43,38 +43,32 @@ func IsValidId(id string) bool {
 func GetSnippet(id string) (Snippet, error) {
 	var snippet Snippet
 
-	if result := db.First(&snippet, "id = ?", id); result.Error != nil {
-		return snippet, result.Error
-	}
-
-	return snippet, nil
+	result := db.First(&snippet, "id = ?", id)
+	return snippet, result.Error
 }
 
 // GetSnippets returns all stored snippets.
 func GetSnippets() ([]Snippet, error) {
 	var snippets []Snippet
 
-	if result := db.Find(&snippets); result.Error != nil {
-		return nil, result.Error
-	}
-
-	return snippets, nil
+	result := db.Find(&snippets)
+	return snippets, result.Error
 }
 
 // AddSnippet stores a new snippet in the database.
 func AddSnippet(id string, cmdText string, description string) error {
-	if result := db.Create(&Snippet{ID: id, Command: cmdText, Description: description}); result.Error != nil {
-		return result.Error
-	}
+	result := db.Create(&Snippet{ID: id, Command: cmdText, Description: description})
+	return result.Error
+}
 
-	return nil
+// Update stores the updated snippet in the database.
+func UpdateSnippet(id string, updated Snippet) error {
+	result := db.Model(&Snippet{ID: id}).Updates(updated)
+	return result.Error
 }
 
 // RemoveSnippet removes the matching snippet from the database.
 func RemoveSnippet(ids []string) error {
-	if result := db.Delete(&Snippet{}, ids); result.Error != nil {
-		return result.Error
-	}
-
-	return nil
+	result := db.Delete(&Snippet{}, ids)
+	return result.Error
 }
