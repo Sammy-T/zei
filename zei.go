@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os/exec"
+	"regexp"
 	"time"
 
 	"github.com/glebarez/sqlite"
@@ -17,8 +18,7 @@ type Snippet struct {
 	ID          string `gorm:"primaryKey"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-	DeletedAt   gorm.DeletedAt `gorm:"index"`
-	Command     string         `gorm:"not null"`
+	Command     string `gorm:"not null"`
 	Description string
 }
 
@@ -38,6 +38,12 @@ func init() {
 	}
 
 	db.AutoMigrate(&Snippet{})
+}
+
+// IsValidId is a helper to determine if the snippet id is valid.
+func IsValidId(id string) bool {
+	idRe := regexp.MustCompile(`^[\w\d\-]+$`)
+	return idRe.MatchString(id)
 }
 
 // ExecSnippet attempts to execute the matching snippet.

@@ -81,9 +81,14 @@ func addSnippet(_ context.Context, _ *cli.Command) error {
 
 	scanner := bufio.NewScanner(os.Stdin)
 
-	fmt.Print("id (ex. some-id): ") //// TODO: Validate
+	fmt.Print("id (ex. some-id): ")
 	scanner.Scan()
 	id = scanner.Text()
+
+	if valid := zei.IsValidId(id); !valid {
+		fmt.Println("Invalid snippet id. Valid characters include alphanumeric, '_', or '-'.")
+		return addSnippet(context.TODO(), nil)
+	}
 
 	fmt.Print("command: ")
 	scanner.Scan()
