@@ -2,6 +2,8 @@ package zei
 
 import (
 	"log"
+	"os"
+	"path/filepath"
 	"regexp"
 
 	"github.com/glebarez/sqlite"
@@ -11,9 +13,19 @@ import (
 var db *gorm.DB
 
 func init() {
-	var err error
+	home, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	db, err = gorm.Open(sqlite.Open("dev.db"), &gorm.Config{}) //// TODO: proper path
+	appDirPath := filepath.Join(home, ".zei")
+	dbPath := filepath.Join(appDirPath, "zei.db")
+
+	if err = os.Mkdir(appDirPath, 0750); err != nil && !os.IsExist(err) {
+		log.Fatal(err)
+	}
+
+	db, err = gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}
