@@ -56,7 +56,7 @@ func ExecSnippet(id string) error {
 
 	fmt.Println(snippet.DisplayText())
 
-	cmdArgs := cmdstr.Split(snippet.Command)
+	cmdArgs := cmdstr.Split(snippet.Command, false)
 
 	cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
 
