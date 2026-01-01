@@ -22,6 +22,11 @@ type Snippet struct {
 	Description string
 }
 
+// DisplayText returns the main fields of the snippet as a "friendly" string.
+func (s *Snippet) DisplayText() string {
+	return fmt.Sprintf("[%v] %v\nCommand: %v", s.ID, s.Description, s.Command)
+}
+
 var db *gorm.DB
 
 func init() {
@@ -43,7 +48,7 @@ func ExecSnippet(id string) error {
 		return result.Error
 	}
 
-	fmt.Println(snippet) //// TODO: Format
+	fmt.Println(snippet.DisplayText())
 
 	cmdArgs := cmdstr.Split(snippet.Command)
 

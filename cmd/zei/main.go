@@ -68,7 +68,7 @@ func listSnippets(_ context.Context, _ *cli.Command) error {
 	}
 
 	for _, snippet := range snippets {
-		fmt.Printf("%v\n", snippet) //// TODO: Format
+		fmt.Printf("%v\n\n", snippet.DisplayText())
 	}
 
 	return nil
