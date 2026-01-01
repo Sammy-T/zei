@@ -1,31 +1,12 @@
 package zei
 
 import (
-	"bufio"
-	"fmt"
-	"io"
 	"log"
-	"os/exec"
 	"regexp"
-	"time"
 
 	"github.com/glebarez/sqlite"
-	cmdstr "github.com/sammy-t/zei/internal/cmdStr"
 	"gorm.io/gorm"
 )
-
-type Snippet struct {
-	ID          string `gorm:"primaryKey"`
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	Command     string `gorm:"not null"`
-	Description string
-}
-
-// DisplayText returns the main fields of the snippet as a "friendly" string.
-func (s *Snippet) DisplayText() string {
-	return fmt.Sprintf("[%v] %v\n%v", s.ID, s.Command, s.Description)
-}
 
 var db *gorm.DB
 
@@ -46,42 +27,15 @@ func IsValidId(id string) bool {
 	return idRe.MatchString(id)
 }
 
-// ExecSnippet attempts to execute the matching snippet.
-func ExecSnippet(id string) error {
+// GetSnippet retrieves the snippet with the provided id.
+func GetSnippet(id string) (Snippet, error) {
 	var snippet Snippet
 
 	if result := db.First(&snippet, "id = ?", id); result.Error != nil {
-		return result.Error
+		return snippet, result.Error
 	}
 
-	fmt.Printf("%v\n\n", snippet.DisplayText())
-
-	cmdArgs := cmdstr.Split(snippet.Command, false)
-
-	cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
-
-	outPipe, err := cmd.StdoutPipe()
-	if err != nil {
-		return err
-	}
-
-	go func(pipe io.ReadCloser) {
-		reader := bufio.NewReader(pipe)
-
-		var line string
-		var err error
-
-		for err == nil {
-			fmt.Print(line)
-			line, err = reader.ReadString('\n')
-		}
-	}(outPipe)
-
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-
-	return nil
+	return snippet, nil
 }
 
 // GetSnippets returns all stored snippets.

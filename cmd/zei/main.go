@@ -12,6 +12,9 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
+// Matches 'y(es)' or empty strings.
+var confirmDefYesRe *regexp.Regexp = regexp.MustCompile(`(?i)^y(es)?$|^$`)
+
 func main() {
 	cmd := &cli.Command{
 		Name:        "zei",
@@ -58,7 +61,21 @@ func execSnippet(_ context.Context, c *cli.Command) error {
 
 	id := c.Args().First()
 
-	return zei.ExecSnippet(id)
+	snippet, err := zei.GetSnippet(id)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%v\n\nExecute '%v'? (Y/n): ", snippet.DisplayText(), snippet.ID)
+
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+
+	if confirm := scanner.Text(); !confirmDefYesRe.MatchString(confirm) {
+		return nil
+	}
+
+	return snippet.Exec()
 }
 
 func listSnippets(_ context.Context, _ *cli.Command) error {
@@ -98,12 +115,10 @@ func addSnippet(_ context.Context, _ *cli.Command) error {
 	scanner.Scan()
 	description = scanner.Text()
 
-	confirmYesRe := regexp.MustCompile(`(?i)^y(es)?$|^$`)
-
 	fmt.Printf("\nNew snippet\nid: %v\ncommand: %v\ndescription: %v\nSave? (Y/n): ", id, cmdText, description)
 	scanner.Scan()
 
-	if confirm := scanner.Text(); !confirmYesRe.MatchString(confirm) {
+	if confirm := scanner.Text(); !confirmDefYesRe.MatchString(confirm) {
 		return nil
 	}
 
