@@ -12,6 +12,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/pterm/pterm"
 	"github.com/sammy-t/zei"
 	cmdstr "github.com/sammy-t/zei/internal/cmdStr"
 	tmpl "github.com/sammy-t/zei/internal/template"
@@ -78,7 +79,7 @@ func execSnippet(_ context.Context, c *cli.Command) error {
 		return err
 	}
 
-	fmt.Printf("%v\n\nExecute '%v'? (Y/n): ", snippet.DisplayText(), snippet.ID)
+	fmt.Printf("%v\n\nExecute '%v'? (Y/n): ", colorSnippet(snippet), snippet.ID)
 
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
@@ -130,6 +131,8 @@ func execSnippet(_ context.Context, c *cli.Command) error {
 		return err
 	}
 
+	fmt.Println()
+
 	go readPipe(outPipe)
 
 	return cmd.Run()
@@ -142,7 +145,7 @@ func listSnippets(_ context.Context, _ *cli.Command) error {
 	}
 
 	for _, snippet := range snippets {
-		fmt.Printf("%v\n\n", snippet.DisplayText())
+		fmt.Printf("%v\n\n", colorSnippet(snippet))
 	}
 
 	return nil
@@ -222,6 +225,12 @@ func removeSnippet(_ context.Context, c *cli.Command) error {
 	ids := c.Args().Slice()
 
 	return zei.RemoveSnippet(ids)
+}
+
+// colorSnippet returns the main fields of the snippet
+// as a color formatted string.
+func colorSnippet(snippet zei.Snippet) string {
+	return pterm.Sprintf("[%v] "+pterm.Green("%v\n")+pterm.Gray("%v"), snippet.ID, snippet.Command, snippet.Description)
 }
 
 // readPipe writes each line read from the provided pipe
