@@ -230,7 +230,7 @@ func removeSnippet(_ context.Context, c *cli.Command) error {
 // colorSnippet returns the main fields of the snippet
 // as a color formatted string.
 func colorSnippet(snippet zei.Snippet) string {
-	return pterm.Sprintf("[%v] "+pterm.Green("%v\n")+pterm.Gray("%v"), snippet.ID, snippet.Command, snippet.Description)
+	return pterm.Sprintf("[%v] "+pterm.LightGreen("%v\n")+pterm.LightBlue("%v"), snippet.ID, snippet.Command, snippet.Description)
 }
 
 // readPipe writes each line read from the provided pipe
