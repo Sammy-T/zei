@@ -51,7 +51,7 @@ func GetSnippet(id string) (Snippet, error) {
 func GetSnippets() ([]Snippet, error) {
 	var snippets []Snippet
 
-	result := db.Find(&snippets)
+	result := db.Order("id asc").Find(&snippets)
 	return snippets, result.Error
 }
 
