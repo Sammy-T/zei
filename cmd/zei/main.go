@@ -4,11 +4,17 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"os"
+	"os/exec"
 	"regexp"
+	"strings"
+	"text/template"
 
 	"github.com/sammy-t/zei"
+	cmdstr "github.com/sammy-t/zei/internal/cmdStr"
+	tmpl "github.com/sammy-t/zei/internal/template"
 	"github.com/urfave/cli/v3"
 )
 
@@ -81,7 +87,52 @@ func execSnippet(_ context.Context, c *cli.Command) error {
 		return nil
 	}
 
-	return snippet.Exec()
+	command := snippet.Command
+
+	tmplFieldNames := tmpl.ParseFields(snippet.Command)
+
+	// If the snippet's command is a template,
+	// prompt the user for each field's value,
+	// and build the command string.
+	if len(tmplFieldNames) > 0 {
+		fmt.Println(snippet.Command)
+
+		var builder strings.Builder
+		tmplVals := make(map[string]string)
+
+		for _, name := range tmplFieldNames {
+			fmt.Printf("%v: ", name)
+			scanner.Scan()
+
+			tmplVals[name] = scanner.Text()
+		}
+
+		tmplName := fmt.Sprintf("tmpl-%v", snippet.ID)
+
+		cmdTmpl, err := template.New(tmplName).Parse(snippet.Command)
+		if err != nil {
+			return err
+		}
+
+		if err = cmdTmpl.Execute(&builder, tmplVals); err != nil {
+			return err
+		}
+
+		command = builder.String()
+	}
+
+	cmdArgs := cmdstr.Split(command, false)
+
+	cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
+
+	outPipe, err := cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+
+	go readPipe(outPipe)
+
+	return cmd.Run()
 }
 
 func listSnippets(_ context.Context, _ *cli.Command) error {
@@ -171,4 +222,18 @@ func removeSnippet(_ context.Context, c *cli.Command) error {
 	ids := c.Args().Slice()
 
 	return zei.RemoveSnippet(ids)
+}
+
+// readPipe writes each line read from the provided pipe
+// to standard output.
+func readPipe(outPipe io.ReadCloser) {
+	reader := bufio.NewReader(outPipe)
+
+	var line string
+	var err error
+
+	for err == nil {
+		fmt.Print(line)
+		line, err = reader.ReadString('\n')
+	}
 }
