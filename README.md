@@ -1,0 +1,43 @@
+# zei
+
+A basic CLI for storing and executing command snippets.
+
+```bash
+# Display help info
+zei -h
+
+# Execute stored snippet's command
+zei <command-id>
+```
+
+## Installing
+
+Download a binary from releases and add it to your PATH.
+
+## Development
+
+#### Add Go dependencies
+
+```bash
+go get ./...
+```
+
+### Run the CLI
+
+```bash
+go run ./cmd/zei
+```
+
+### Build the CLI
+
+```bash
+go build -C ./cmd/zei
+```
+
+The binary will output to the `cmd/zei/` directory.
+
+### Install the CLI
+
+```bash
+go install ./cmd/zei
+```
