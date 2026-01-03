@@ -25,39 +25,34 @@ var confirmDefYesRe *regexp.Regexp = regexp.MustCompile(`(?i)^y(es)?$|^$`)
 func main() {
 	cmd := &cli.Command{
 		Name:        "zei",
-		Version:     "v0.0.1",
+		Version:     "v1.0.0",
 		Description: "A command snippet cli",
 		Usage:       "Execute snippet with ID",
 		Action:      execSnippet,
 		Commands: []*cli.Command{
 			{
-				Name: "snippet",
-				Commands: []*cli.Command{
-					{
-						Name:    "list",
-						Aliases: []string{"ls"},
-						Usage:   "list snippets",
-						Action:  listSnippets,
-					},
-					{
-						Name:   "add",
-						Usage:  "add a new snippet",
-						Action: addSnippet,
-					},
-					{
-						Name:      "update",
-						Usage:     "update snippet with ID",
-						UsageText: "zei snippet update ID",
-						Action:    updateSnippet,
-					},
-					{
-						Name:      "remove",
-						Aliases:   []string{"rm", "del"},
-						Usage:     "remove snippet with ID",
-						UsageText: "zei snippet remove ID",
-						Action:    removeSnippet,
-					},
-				},
+				Name:    "list",
+				Aliases: []string{"ls"},
+				Usage:   "list snippets",
+				Action:  listSnippets,
+			},
+			{
+				Name:   "add",
+				Usage:  "add a new snippet",
+				Action: addSnippet,
+			},
+			{
+				Name:      "update",
+				Usage:     "update snippet with ID",
+				UsageText: "zei update ID",
+				Action:    updateSnippet,
+			},
+			{
+				Name:      "remove",
+				Aliases:   []string{"rm", "del"},
+				Usage:     "remove snippet with ID",
+				UsageText: "zei remove ID",
+				Action:    removeSnippet,
 			},
 		},
 	}
