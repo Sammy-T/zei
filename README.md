@@ -10,6 +10,12 @@ zei -h
 zei <command-id>
 ```
 
+> [!TIP]
+> Go templating is supported within a snippet's command.
+>
+> For example, setting a snippet with a command `echo {{.Message}}`
+> will prompt for the value of `Message` when the snippet is executed.
+
 ## Installing
 
 Download a binary from [releases](https://github.com/Sammy-T/zei/releases) and add it to your PATH.
