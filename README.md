@@ -12,7 +12,15 @@ zei <command-id>
 
 ## Installing
 
-Download a binary from releases and add it to your PATH.
+Download a binary from [releases](https://github.com/Sammy-T/zei/releases) and add it to your PATH.
+
+**or**
+
+Install with go:
+
+```bash
+go install github.com/sammy-t/zei/cmd/zei@latest
+```
 
 ## Development
 
