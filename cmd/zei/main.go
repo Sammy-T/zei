@@ -126,8 +126,6 @@ func execSnippet(_ context.Context, c *cli.Command) error {
 		return err
 	}
 
-	fmt.Println()
-
 	go readPipe(outPipe)
 
 	return cmd.Run()
