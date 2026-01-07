@@ -74,7 +74,7 @@ func execSnippet(_ context.Context, c *cli.Command) error {
 		return err
 	}
 
-	fmt.Printf("%v\n\nExecute '%v'? (Y/n): ", colorSnippet(snippet), snippet.ID)
+	fmt.Printf("%v\n\n"+pterm.LightYellow("Execute '%v'? (Y/n): "), colorSnippet(snippet), snippet.ID)
 
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
