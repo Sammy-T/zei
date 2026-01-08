@@ -25,7 +25,7 @@ var confirmDefYesRe *regexp.Regexp = regexp.MustCompile(`(?i)^y(es)?$|^$`)
 func main() {
 	cmd := &cli.Command{
 		Name:        "zei",
-		Version:     "v1.0.0",
+		Version:     "v1.1.0",
 		Description: "A command snippet cli",
 		Usage:       "Execute snippet with ID",
 		Action:      execSnippet,
