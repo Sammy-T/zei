@@ -74,7 +74,7 @@ func execSnippet(_ context.Context, c *cli.Command) error {
 		return err
 	}
 
-	fmt.Printf("%v\n\n"+pterm.LightYellow("Execute '%v'? (Y/n): "), colorSnippet(snippet), snippet.ID)
+	fmt.Printf("%v\n\n"+pterm.LightYellow("Execute '%v'? [Y/n]: "), colorSnippet(snippet), snippet.ID)
 
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
@@ -168,7 +168,7 @@ func addSnippet(_ context.Context, _ *cli.Command) error {
 	scanner.Scan()
 	description = scanner.Text()
 
-	fmt.Printf("\nNew snippet\nid: %v\ncommand: %v\ndescription: %v\nSave? (Y/n): ", id, cmdText, description)
+	fmt.Printf("\nNew snippet\nid: %v\ncommand: %v\ndescription: %v\nSave? [Y/n]: ", id, cmdText, description)
 	scanner.Scan()
 
 	if confirm := scanner.Text(); !confirmDefYesRe.MatchString(confirm) {
