@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
+	"sync"
 	"text/template"
 
 	"github.com/pterm/pterm"
@@ -22,10 +23,13 @@ import (
 // Matches 'y(es)' or empty strings.
 var confirmDefYesRe *regexp.Regexp = regexp.MustCompile(`(?i)^y(es)?$|^$`)
 
+// Matches `|` with 0-1 surrounding spaces.
+var pipeRe *regexp.Regexp = regexp.MustCompile(`\s?\|\s?`)
+
 func main() {
 	cmd := &cli.Command{
 		Name:        "zei",
-		Version:     "v1.2.0",
+		Version:     "v1.3.0-dev",
 		Description: "A command snippet cli",
 		Usage:       "Execute snippet with ID",
 		Action:      execSnippet,
@@ -117,18 +121,14 @@ func execSnippet(_ context.Context, c *cli.Command) error {
 		command = builder.String()
 	}
 
-	cmdArgs := cmdstr.Split(command, false)
+	// Check for piped commands
+	piped := pipeRe.Split(command, -1)
 
-	cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
-
-	outPipe, err := cmd.StdoutPipe()
-	if err != nil {
-		return err
+	if len(piped) > 1 {
+		return runPipedCmd(piped)
 	}
 
-	go readPipe(outPipe)
-
-	return cmd.Run()
+	return runCmd(command)
 }
 
 func listSnippets(_ context.Context, _ *cli.Command) error {
@@ -220,10 +220,71 @@ func removeSnippet(_ context.Context, c *cli.Command) error {
 	return zei.RemoveSnippet(ids)
 }
 
-// colorSnippet returns the main fields of the snippet
-// as a color formatted string.
-func colorSnippet(snippet zei.Snippet) string {
-	return pterm.Sprintf("[%v] "+pterm.LightGreen("%v\n")+pterm.LightBlue("%v"), snippet.ID, snippet.Command, snippet.Description)
+// runCommand executes the provided command string
+func runCmd(command string) error {
+	cmdArgs := cmdstr.Split(command, false)
+
+	cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
+
+	outPipe, err := cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+
+	go readPipe(outPipe)
+
+	return cmd.Run()
+}
+
+// runPipedCmd connects and executes the commands
+// of the provided piped command string
+func runPipedCmd(piped []string) error {
+	var cmds []*exec.Cmd
+
+	for _, command := range piped {
+		cmdArgs := cmdstr.Split(command, false)
+
+		cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
+		cmds = append(cmds, cmd)
+	}
+
+	cmdsLen := len(cmds)
+
+	// Connect each command's output pipe
+	// to the following one's input
+	// and read the last command's output.
+	for i, cmd := range cmds {
+		outPipe, err := cmd.StdoutPipe()
+		if err != nil {
+			return err
+		}
+
+		if i+1 < cmdsLen {
+			cmds[i+1].Stdin = outPipe
+		} else {
+			go readPipe(outPipe)
+		}
+	}
+
+	var wg sync.WaitGroup
+
+	// Start the commands in reverse order
+	for i := 1; i <= cmdsLen; i++ {
+		cmd := cmds[cmdsLen-i]
+
+		if err := cmd.Start(); err != nil {
+			return err
+		}
+
+		wg.Go(func() {
+			if err := cmd.Wait(); err != nil {
+				log.Print(err)
+			}
+		})
+	}
+
+	wg.Wait()
+	return nil
 }
 
 // readPipe writes each line read from the provided pipe
@@ -238,4 +299,10 @@ func readPipe(outPipe io.ReadCloser) {
 		fmt.Print(line)
 		line, err = reader.ReadString('\n')
 	}
+}
+
+// colorSnippet returns the main fields of the snippet
+// as a color formatted string.
+func colorSnippet(snippet zei.Snippet) string {
+	return pterm.Sprintf("[%v] "+pterm.LightGreen("%v\n")+pterm.LightBlue("%v"), snippet.ID, snippet.Command, snippet.Description)
 }
