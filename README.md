@@ -2,6 +2,8 @@
 
 A basic CLI for storing and executing command snippets.
 
+<img width="1001" height="216" alt="screen-01" src="https://github.com/user-attachments/assets/603b3efb-0cad-4985-bc31-65f5754b0b82" />
+
 ```bash
 # Display help info
 zei -h
@@ -13,8 +15,24 @@ zei <command-id>
 > [!TIP]
 > Go templating is supported within a snippet's command.
 >
-> For example, setting a snippet with a command `echo {{.Message}}`
+> For example, setting a snippet with a command like
+>
+> ```bash
+> echo {{.Message}}
+> ```
+> 
 > will prompt for the value of `Message` when the snippet is executed.
+
+> [!TIP]
+> Piped commands are supported within a snippet's command.
+>
+> Setting a snippet with a command like
+> 
+> ```bash
+> <command-1> | <command-2>
+> ```
+> 
+> will pipe command-1's output to command-2 when the snippet is executed.
 
 ## Installing
 
