@@ -49,7 +49,7 @@ jobs:
       run: cp cmd/zei/zei** build/bin
 
     - name: Zip release file
-      uses: vimtor/action-zip@v1.2
+      uses: vimtor/action-zip@v1.3
       with:
         files: build/bin
         recursive: false
