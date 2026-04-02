@@ -29,7 +29,7 @@ var pipeRe *regexp.Regexp = regexp.MustCompile(`\s?\|\s?`)
 func main() {
 	cmd := &cli.Command{
 		Name:        "zei",
-		Version:     "v1.3.1",
+		Version:     "v1.3.2",
 		Description: "A command snippet cli",
 		Usage:       "Execute snippet with ID",
 		Action:      execSnippet,
