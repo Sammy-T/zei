@@ -5,8 +5,8 @@ go 1.25.5
 require (
 	github.com/glebarez/sqlite v1.11.0
 	github.com/pterm/pterm v0.12.83
-	github.com/urfave/cli/v3 v3.9.0
-	gorm.io/gorm v1.31.1
+	github.com/urfave/cli/v3 v3.10.1
+	gorm.io/gorm v1.31.2
 )
 
 require (
